@@ -5,15 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.fisiosolutions"
-    compileSdk {
-        version = release(36)
-    }
+    namespace = "br.com.fisiosolutions"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.fisiosolutions"
+        applicationId = "br.com.fisiosolutions"
         minSdk = 30
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -51,6 +49,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
