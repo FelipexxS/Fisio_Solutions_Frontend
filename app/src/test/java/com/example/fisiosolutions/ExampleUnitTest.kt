@@ -1,4 +1,4 @@
-package com.example.fisiosolutions
+package br.com.fisiosolutions
 
 import org.junit.Test
 
