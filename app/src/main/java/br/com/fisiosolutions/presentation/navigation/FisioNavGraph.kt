@@ -1,19 +1,20 @@
 package br.com.fisiosolutions.presentation.navigation
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import br.com.fisiosolutions.presentation.editaccount.EditAccountScreen
+import br.com.fisiosolutions.presentation.ergonomicsdetail.ErgonomicsDetailScreen
+import br.com.fisiosolutions.presentation.ergonomicslist.ErgonomicsListScreen
+import br.com.fisiosolutions.presentation.exercisedetail.ExerciseDetailScreen
+import br.com.fisiosolutions.presentation.exerciselist.ExerciseListScreen
 import br.com.fisiosolutions.presentation.login.LoginScreen
+import br.com.fisiosolutions.presentation.myexercises.MyExercisesScreen
 import br.com.fisiosolutions.presentation.register.RegisterScreen
 import br.com.fisiosolutions.presentation.userarea.UserAreaScreen
 
@@ -52,6 +53,79 @@ fun FisioNavGraph(
                 onToggleTheme = onToggleTheme,
                 onNavigateToMyList = { navController.navigate("myList") },
                 onNavigateToEditAccount = { navController.navigate("editAccount") },
+                onNavigateToExerciseSearch = { navController.navigate("exerciseList") },
+                onNavigateToTutorial = { exerciseId: String -> navController.navigate("exerciseDetail/$exerciseId") },
+                onNavigateToErgonomicsList = { navController.navigate("ergonomics") },
+                onSwitchUser = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("exerciseList") {
+            ExerciseListScreen(
+                isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { exerciseId -> navController.navigate("exerciseDetail/$exerciseId") },
+                onNavigateToErgonomics = { navController.navigate("ergonomics") },
+                onNavigateToMyList = { navController.navigate("myList") },
+                onNavigateToEditAccount = { navController.navigate("editAccount") },
+                onSwitchUser = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(
+            route = "exerciseDetail/{exerciseId}",
+            arguments = listOf(navArgument("exerciseId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val exerciseId = backStackEntry.arguments?.getString("exerciseId") ?: "coluna_1"
+            ExerciseDetailScreen(
+                exerciseId = exerciseId,
+                isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToMyList = { navController.navigate("myList") },
+                onNavigateToEditAccount = { navController.navigate("editAccount") },
+                onSwitchUser = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("ergonomics") {
+            ErgonomicsListScreen(
+                isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { tipId -> navController.navigate("ergonomicsDetail/$tipId") },
+                onNavigateToExerciseSearch = { navController.navigate("exerciseList") },
+                onNavigateToMyList = { navController.navigate("myList") },
+                onNavigateToEditAccount = { navController.navigate("editAccount") },
+                onSwitchUser = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(
+            route = "ergonomicsDetail/{tipId}",
+            arguments = listOf(navArgument("tipId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tipId = backStackEntry.arguments?.getString("tipId") ?: "tip_1"
+            ErgonomicsDetailScreen(
+                tipId = tipId,
+                isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToMyList = { navController.navigate("myList") },
+                onNavigateToEditAccount = { navController.navigate("editAccount") },
                 onSwitchUser = {
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
@@ -60,18 +134,18 @@ fun FisioNavGraph(
             )
         }
         composable("myList") {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Minha Lista (Exercícios Salvos)",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            MyExercisesScreen(
+                isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { exerciseId -> navController.navigate("exerciseDetail/$exerciseId") },
+                onNavigateToEditAccount = { navController.navigate("editAccount") },
+                onSwitchUser = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
         composable("editAccount") {
             EditAccountScreen(
