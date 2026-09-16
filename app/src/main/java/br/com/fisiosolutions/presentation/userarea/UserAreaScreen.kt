@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -47,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fisiosolutions.R
+import br.com.fisiosolutions.data.AppState
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
 import br.com.fisiosolutions.presentation.components.FisioSelectInput
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
@@ -74,21 +75,14 @@ fun UserAreaScreen(
 ) {
     val scrollState = rememberScrollState()
 
-    val categories = remember { listOf("Coluna", "Pescoço", "Braços", "Pernas") }
-    var selectedCategory by remember { mutableStateOf("Coluna") }
+    val categories = AppState.categories
+    val selectedCategory = AppState.currentSelectedCategory
 
     val savedExercises = remember {
         mutableStateListOf(
-            SavedExercise("1", "Fortalecimento da Coluna", "Coluna", R.drawable.exercise_ilustration_1),
-            SavedExercise("2", "Mobilidade da Coluna", "Coluna", R.drawable.exercise_ilustration_2),
-            SavedExercise("3", "Alongamentos que trazem alívio das dores", "Coluna", R.drawable.exercise_ilustration_3),
-            SavedExercise("4", "Alongamento Lombar", "Coluna", R.drawable.exercise_ilustration_4),
-            SavedExercise("5", "Postura da Coluna", "Coluna", R.drawable.exercise_ilustration_5),
-            SavedExercise("6", "Reabilitação Espinhal", "Coluna", R.drawable.exercise_ilustration_1),
-            SavedExercise("7", "Alongamento Cervical", "Pescoço", R.drawable.exercise_ilustration_2),
-            SavedExercise("8", "Alívio de Tensão no Pescoço", "Pescoço", R.drawable.exercise_ilustration_3),
-            SavedExercise("9", "Alongamento de Bíceps", "Braços", R.drawable.exercise_ilustration_4),
-            SavedExercise("10", "Alongamento de Quadríceps", "Pernas", R.drawable.exercise_ilustration_5)
+            *AppState.allExercises.filter { it.isSaved }.map {
+                SavedExercise(it.id, it.title, it.category, it.imageResId)
+            }.toTypedArray()
         )
     }
 
@@ -249,7 +243,7 @@ fun UserAreaScreen(
             FisioSelectInput(
                 options = categories,
                 selectedOption = selectedCategory,
-                onOptionSelected = { selectedCategory = it },
+                onOptionSelected = { AppState.currentSelectedCategory = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
@@ -296,11 +290,12 @@ fun UserAreaScreen(
                     contentPadding = PaddingValues(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(
+                    itemsIndexed(
                         items = filteredExercises,
-                        key = { it.id }
-                    ) { exercise ->
+                        key = { _, exercise -> exercise.id }
+                    ) { index, exercise ->
                         SavedExerciseCard(
+                            index = index + 1,
                             exercise = exercise,
                             onStart = { onNavigateToTutorial(exercise.id) },
                             onDelete = { savedExercises.remove(exercise) }
@@ -395,6 +390,7 @@ private fun MetricItem(
 
 @Composable
 private fun SavedExerciseCard(
+    index: Int,
     exercise: SavedExercise,
     onStart: () -> Unit,
     onDelete: () -> Unit,
@@ -415,6 +411,20 @@ private fun SavedExerciseCard(
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Index Number Prepend
+            Text(
+                text = "$index",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp
+                ),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
+                textAlign = TextAlign.Start
+            )
+
             // Exercise Illustration Image
             Image(
                 painter = painterResource(id = exercise.imageResId),

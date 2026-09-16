@@ -27,15 +27,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.remember
 import br.com.fisiosolutions.R
+import br.com.fisiosolutions.presentation.components.BreadcrumbItem
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
-import br.com.fisiosolutions.presentation.components.FisioBackButton
+import br.com.fisiosolutions.presentation.components.FisioBreadcrumb
+import br.com.fisiosolutions.presentation.components.FisioHomeButton
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 
 @Composable
 fun ErgonomicsDetailScreen(
     modifier: Modifier = Modifier,
     tipId: String = "tip_2",
+    categoryName: String = "Ergonomia",
     tipTitle: String = "5 Dicas de Ergonomia para o seu Home Office",
     imageResId: Int = R.drawable.ergonomics_banner,
     content: String = "Trabalhar de casa trouxe liberdade, mas também alguns desafios para a nossa saúde física. A diferença entre uma postura improvisada no sofá e um setup ajustado é o que define se você terminará o dia com produtividade ou com dores nas costas.\n\nAqui estão 5 dicas essenciais para transformar seu ambiente de trabalho:\n\n1. Ajuste a Altura do Monitor\n    a. Olhar para baixo por horas é o caminho mais rápido para a \"síndrome do pescoço tecnológico\". Como mostra o lado direito da imagem, o ideal é que o topo da tela esteja na altura dos seus olhos.",
@@ -43,7 +47,8 @@ fun ErgonomicsDetailScreen(
     userProfession: String = "Analista de Desenvolvimento de Software",
     isDarkTheme: Boolean = false,
     onToggleTheme: () -> Unit = {},
-    onNavigateBack: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToErgonomicsList: () -> Unit = {},
     onNavigateToMyList: () -> Unit = {},
     onNavigateToEditAccount: () -> Unit = {},
     onSwitchUser: () -> Unit = {}
@@ -76,23 +81,31 @@ fun ErgonomicsDetailScreen(
                     .verticalScroll(scrollState)
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
-                // Top Navigation Row: Back Button & Breadcrumb Read-Only Text
+                // Top Navigation Row: Home Button & Interactive Breadcrumb Component
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    FisioBackButton(onClick = onNavigateBack)
+                    FisioHomeButton(onClick = onNavigateToHome)
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // Read-only Breadcrumb
-                    Text(
-                        text = "Dica de Ergonomia",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
+                    val breadcrumbItems = remember(categoryName, tipTitle, onNavigateToErgonomicsList) {
+                        listOf(
+                            BreadcrumbItem(
+                                title = categoryName,
+                                onClick = onNavigateToErgonomicsList
+                            ),
+                            BreadcrumbItem(
+                                title = tipTitle,
+                                onClick = null
+                            )
+                        )
+                    }
+
+                    FisioBreadcrumb(
+                        items = breadcrumbItems,
+                        modifier = Modifier.weight(1f)
                     )
                 }
 

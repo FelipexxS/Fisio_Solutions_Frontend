@@ -45,16 +45,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fisiosolutions.R
+import br.com.fisiosolutions.presentation.components.BreadcrumbItem
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
-import br.com.fisiosolutions.presentation.components.FisioBackButton
+import br.com.fisiosolutions.presentation.components.FisioBreadcrumb
+import br.com.fisiosolutions.presentation.components.FisioHomeButton
 import br.com.fisiosolutions.presentation.theme.AccentGreen
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 
 @Composable
 fun ExerciseDetailScreen(
     exerciseId: String = "coluna_1",
-    exerciseTitle: String = "Alongamento de Lombar",
-    categoryName: String = "Exercícios",
+    exerciseTitle: String = "Alongamento da coluna",
+    categoryName: String = "Coluna",
     tutorialTitle: String = "ALONGAMENTO DE QUADRIL E LOMBAR",
     imageResId: Int = R.drawable.exercise_ilustration_1,
     instructions: String = "Para alongar a lombar, deitar de barriga para cima e dobrar os joelhos mantendo os pés no chão, ou deixando uma perna esticada. Com a ajuda das mãos, trazer um joelho em direção ao peito, mantendo essa posição por cerca de 15 segundos. Fazer o mesmo com a outra perna, repetindo o movimento por 2 vezes em cada perna.\n\nLembre-se de fazer os movimentos de forma controlada, respeitando seus limites e evitando dor intensa, e se a dor persistir, consulte um médico.",
@@ -64,7 +66,8 @@ fun ExerciseDetailScreen(
     initialIsSaved: Boolean = false,
     initialIsCompleted: Boolean = false,
     onToggleTheme: () -> Unit = {},
-    onNavigateBack: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToExerciseList: () -> Unit = {},
     onNavigateToMyList: () -> Unit = {},
     onNavigateToEditAccount: () -> Unit = {},
     onSwitchUser: () -> Unit = {},
@@ -102,23 +105,31 @@ fun ExerciseDetailScreen(
                     .verticalScroll(scrollState)
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                // Top Navigation Row: Back Button & Breadcrumb Read-Only Text
+                // Top Navigation Row: Home Button & Interactive Breadcrumb Component
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    FisioBackButton(onClick = onNavigateBack)
+                    FisioHomeButton(onClick = onNavigateToHome)
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // Read-only Breadcrumb
-                    Text(
-                        text = "$categoryName/$exerciseTitle",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
+                    val breadcrumbItems = remember(categoryName, exerciseTitle, onNavigateToExerciseList) {
+                        listOf(
+                            BreadcrumbItem(
+                                title = categoryName,
+                                onClick = onNavigateToExerciseList
+                            ),
+                            BreadcrumbItem(
+                                title = exerciseTitle,
+                                onClick = null
+                            )
+                        )
+                    }
+
+                    FisioBreadcrumb(
+                        items = breadcrumbItems,
+                        modifier = Modifier.weight(1f)
                     )
                 }
 

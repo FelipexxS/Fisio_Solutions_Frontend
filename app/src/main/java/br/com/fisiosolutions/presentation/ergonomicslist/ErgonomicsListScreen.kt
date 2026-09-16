@@ -38,17 +38,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.com.fisiosolutions.R
+import br.com.fisiosolutions.data.AppState
+import br.com.fisiosolutions.data.ErgonomicsTip
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
 import br.com.fisiosolutions.presentation.components.FisioBackButton
+import br.com.fisiosolutions.presentation.components.FisioHomeButton
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
-
-data class ErgonomicsTip(
-    val id: String,
-    val title: String,
-    val imageResId: Int,
-    val content: String = "Conteúdo detalhado da dica de ergonomia..."
-)
 
 @Composable
 fun ErgonomicsListScreen(
@@ -57,7 +52,7 @@ fun ErgonomicsListScreen(
     userProfession: String = "Analista de Desenvolvimento de Software",
     isDarkTheme: Boolean = false,
     onToggleTheme: () -> Unit = {},
-    onNavigateBack: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
     onNavigateToDetail: (String) -> Unit = {},
     onNavigateToExerciseSearch: () -> Unit = {},
     onNavigateToMyList: () -> Unit = {},
@@ -66,28 +61,7 @@ fun ErgonomicsListScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(1) } // 0 = Lista de Exercícios, 1 = Dicas de Ergonomia
 
-    val ergonomicsTips = remember {
-        listOf(
-            ErgonomicsTip(
-                id = "tip_1",
-                title = "9 Exercícios Simples Para a Melhorar a Postura",
-                imageResId = R.drawable.exercise_ilustration_1,
-                content = "A boa postura não é apenas uma questão estética, mas fundamental para a saúde da sua coluna. Exercícios simples de alongamento e fortalecimento diários ajudam a prevenir dores, melhorar a respiração e aumentar a disposição.\n\nPrincipais hábitos recomendados:\n1. Manter os ombros relaxados e para trás.\n2. Alinhar as orelhas com a linha dos ombros.\n3. Apoiar ambos os pés firmemente no chão."
-            ),
-            ErgonomicsTip(
-                id = "tip_2",
-                title = "5 Dicas de Ergonomia para Melhorar seu Home Office",
-                imageResId = R.drawable.ergonomics_banner,
-                content = "Trabalhar de casa trouxe liberdade, mas também alguns desafios para a nossa saúde física. A diferença entre uma postura improvisada no sofá e um setup ajustado é o que define se você terminará o dia com produtividade ou com dores nas costas.\n\nAqui estão 5 dicas essenciais para transformar seu ambiente de trabalho:\n\n1. Ajuste a Altura do Monitor\n    a. Olhar para baixo por horas é o caminho mais rápido para a \"síndrome do pescoço tecnológico\". Como mostra o lado direito da imagem, o ideal é que o topo da tela esteja na altura dos seus olhos.\n\n2. Mantenha os Pés Apoiados\n    a. Seus pés devem ficar totalmente apoiados no chão ou em um descanso para pés para evitar pressão excessiva na parte posterior das coxas."
-            ),
-            ErgonomicsTip(
-                id = "tip_3",
-                title = "Acessórios para Melhorar a Ergonomia no Escritório",
-                imageResId = R.drawable.exercise_ilustration_2,
-                content = "Investir nos acessórios certos pode transformar completamente a sua experiência de trabalho no dia a dia.\n\nAcessórios essenciais:\n- Suporte para notebook ajustável\n- Teclado e mouse ergonômicos externos\n- Apoio para os pés e descanso de pulso"
-            )
-        )
-    }
+    val ergonomicsTips = AppState.allErgonomicsTips
 
     Column(
         modifier = modifier
@@ -114,8 +88,7 @@ fun ErgonomicsListScreen(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Yellow Back Button
-            FisioBackButton(onClick = onNavigateBack)
+            FisioHomeButton(onClick = onNavigateToHome)
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -125,7 +98,7 @@ fun ErgonomicsListScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Tab 1: Lista de Exercícios
+                // Tab 1: Exercícios
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -137,7 +110,7 @@ fun ErgonomicsListScreen(
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
                     Text(
-                        text = "Lista de Exercícios",
+                        text = "Exercícios",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Medium
                         ),
@@ -157,7 +130,7 @@ fun ErgonomicsListScreen(
                     }
                 }
 
-                // Tab 2: Dicas de Ergonomia
+                // Tab 2: Ergonomia
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -166,7 +139,7 @@ fun ErgonomicsListScreen(
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
                     Text(
-                        text = "Dicas de Ergonomia",
+                        text = "Ergonomia",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Medium
                         ),

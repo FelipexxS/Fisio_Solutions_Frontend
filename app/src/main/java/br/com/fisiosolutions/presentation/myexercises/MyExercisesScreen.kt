@@ -22,13 +22,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -59,9 +60,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fisiosolutions.R
+import br.com.fisiosolutions.data.AppState
+import br.com.fisiosolutions.domain.model.Exercise
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
 import br.com.fisiosolutions.presentation.components.FisioBackButton
-import br.com.fisiosolutions.presentation.exerciselist.Exercise
 import br.com.fisiosolutions.presentation.theme.AccentGreen
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 
@@ -84,17 +86,10 @@ fun MyExercisesScreen(
     var selectedCategoryFilter by remember { mutableStateOf<String?>(null) }
     var isFilterMenuExpanded by remember { mutableStateOf(false) }
 
-    val categories = remember { listOf("Coluna", "Pescoço", "Braços", "Pernas") }
+    val categories = AppState.categories
 
     val savedExercises = remember {
-        mutableStateListOf(
-            Exercise("coluna_1", "Alongamentos de Lombar", "Coluna", R.drawable.exercise_ilustration_1, isSaved = true, isCompletedToday = false),
-            Exercise("coluna_2", "Fortalecimento", "Coluna", R.drawable.exercise_ilustration_2, isSaved = true, isCompletedToday = false),
-            Exercise("coluna_3", "Mobilidade da coluna", "Coluna", R.drawable.exercise_ilustration_3, isSaved = true, isCompletedToday = false),
-            Exercise("coluna_4", "Alongamentos de Lombar", "Coluna", R.drawable.exercise_ilustration_4, isSaved = true, isCompletedToday = false),
-            Exercise("pescoco_1", "Alongamento Cervical", "Pescoço", R.drawable.exercise_ilustration_1, isSaved = true, isCompletedToday = false),
-            Exercise("bracos_1", "Alongamento de Bíceps", "Braços", R.drawable.exercise_ilustration_3, isSaved = true, isCompletedToday = false)
-        )
+        mutableStateListOf(*AppState.allExercises.filter { it.isSaved }.toTypedArray())
     }
 
     val filteredExercises = savedExercises.filter { exercise ->
@@ -510,57 +505,39 @@ private fun SavedExerciseItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Right Column: Action Buttons
+            // Right Column: Action Controls
             Column(
                 modifier = Modifier.weight(0.42f),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Button 1: "Marcar como Concluído" or "Concluído Hoje ✓"
-                if (exercise.isCompletedToday) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(onClick = onToggleComplete)
-                            .padding(vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = "Concluído Hoje",
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onBackground
+                // Completion Checkbox Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable(onClick = onToggleComplete)
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Checkbox(
+                        checked = exercise.isCompletedToday,
+                        onCheckedChange = { onToggleComplete() },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colorScheme.primary,
+                            uncheckedColor = MaterialTheme.colorScheme.onBackground
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Concluído",
-                            tint = AccentGreen,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                } else {
-                    Button(
-                        onClick = onToggleComplete,
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(
+                        text = "Concluído hoje",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
                         ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(38.dp)
-                            .shadow(2.dp, shape = RoundedCornerShape(8.dp))
-                    ) {
-                        Text(
-                            text = "Marcar como Concluído",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp
-                            ),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))

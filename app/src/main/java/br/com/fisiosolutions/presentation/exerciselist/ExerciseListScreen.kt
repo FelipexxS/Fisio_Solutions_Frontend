@@ -45,22 +45,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fisiosolutions.R
+import br.com.fisiosolutions.data.AppState
+import br.com.fisiosolutions.domain.model.Exercise
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
 import br.com.fisiosolutions.presentation.components.FisioBackButton
+import br.com.fisiosolutions.presentation.components.FisioHomeButton
 import br.com.fisiosolutions.presentation.components.FisioSelectInput
 import br.com.fisiosolutions.presentation.theme.AccentGreen
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
-
-data class Exercise(
-    val id: String,
-    val title: String,
-    val category: String,
-    val imageResId: Int,
-    var isSaved: Boolean = false,
-    var isCompletedToday: Boolean = false,
-    val tutorialTitle: String = "ALONGAMENTO DE QUADRIL E LOMBAR",
-    val instructions: String = "Para alongar a lombar, deitar de barriga para cima e dobrar os joelhos mantendo os pés no chão, ou deixando uma perna esticada. Com a ajuda das mãos, trazer um joelho em direção ao peito, mantendo essa posição por cerca de 15 segundos. Fazer o mesmo com a outra perna, repetindo o movimento por 2 vezes em cada perna.\n\nLembre-se de fazer os movimentos de forma controlada, respeitando seus limites e evitando dor intensa, e se a dor persistir, consulte um médico."
-)
 
 @Composable
 fun ExerciseListScreen(
@@ -69,7 +61,7 @@ fun ExerciseListScreen(
     userProfession: String = "Analista de Desenvolvimento de Software",
     isDarkTheme: Boolean = false,
     onToggleTheme: () -> Unit = {},
-    onNavigateBack: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
     onNavigateToDetail: (String) -> Unit = {},
     onNavigateToErgonomics: () -> Unit = {},
     onNavigateToMyList: () -> Unit = {},
@@ -77,31 +69,11 @@ fun ExerciseListScreen(
     onSwitchUser: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) } // 0 = Lista de Exercícios, 1 = Dicas de Ergonomia
-    val categories = remember { listOf("Coluna", "Pescoço", "Braços", "Pernas") }
-    var selectedCategory by remember { mutableStateOf("Coluna") }
+    val categories = AppState.categories
+    val selectedCategory = AppState.currentSelectedCategory
 
     val exercises = remember {
-        mutableStateListOf(
-            Exercise("coluna_1", "Alongamentos de Lombar", "Coluna", R.drawable.exercise_ilustration_1, isSaved = false),
-            Exercise("coluna_2", "Fortalecimento", "Coluna", R.drawable.exercise_ilustration_2, isSaved = false),
-            Exercise("coluna_3", "Mobilidade da coluna", "Coluna", R.drawable.exercise_ilustration_3, isSaved = true),
-            Exercise("coluna_4", "Alongamento Lombar Avançado", "Coluna", R.drawable.exercise_ilustration_4, isSaved = true),
-            Exercise("coluna_5", "Descompressão Vertebral", "Coluna", R.drawable.exercise_ilustration_5, isSaved = true),
-            Exercise("coluna_6", "Reabilitação Espinhal", "Coluna", R.drawable.exercise_ilustration_1, isSaved = true),
-            Exercise("coluna_7", "Postura Lombar", "Coluna", R.drawable.exercise_ilustration_2, isSaved = true),
-            Exercise("coluna_8", "Estabilização do Core", "Coluna", R.drawable.exercise_ilustration_3, isSaved = true),
-            Exercise("coluna_9", "Alongamento do Psoas", "Coluna", R.drawable.exercise_ilustration_4, isSaved = false),
-            Exercise("coluna_10", "Descompressão Sacroilíaca", "Coluna", R.drawable.exercise_ilustration_5, isSaved = false),
-
-            Exercise("pescoco_1", "Alongamento Cervical", "Pescoço", R.drawable.exercise_ilustration_1, isSaved = false),
-            Exercise("pescoco_2", "Alívio de Tensão no Pescoço", "Pescoço", R.drawable.exercise_ilustration_2, isSaved = true),
-
-            Exercise("bracos_1", "Alongamento de Bíceps", "Braços", R.drawable.exercise_ilustration_3, isSaved = false),
-            Exercise("bracos_2", "Mobilidade de Pulso", "Braços", R.drawable.exercise_ilustration_4, isSaved = true),
-
-            Exercise("pernas_1", "Alongamento de Isquiotibiais", "Pernas", R.drawable.exercise_ilustration_5, isSaved = false),
-            Exercise("pernas_2", "Fortalecimento de Quadríceps", "Pernas", R.drawable.exercise_ilustration_1, isSaved = true)
-        )
+        mutableStateListOf(*AppState.allExercises.toTypedArray())
     }
 
     val filteredExercises = exercises.filter { it.category == selectedCategory }
@@ -133,8 +105,7 @@ fun ExerciseListScreen(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Yellow Back Button
-            FisioBackButton(onClick = onNavigateBack)
+            FisioHomeButton(onClick = onNavigateToHome)
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -213,7 +184,7 @@ fun ExerciseListScreen(
         FisioSelectInput(
             options = categories,
             selectedOption = selectedCategory,
-            onOptionSelected = { selectedCategory = it },
+            onOptionSelected = { AppState.currentSelectedCategory = it },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
