@@ -28,6 +28,18 @@ fun FisioNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = "login"
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val sessionManager = androidx.compose.runtime.remember {
+        br.com.fisiosolutions.data.local.SessionManager.getInstance(context)
+    }
+
+    // Inicializa o usuário da sessão ativa caso já esteja autenticado
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (AppState.currentUser == null && sessionManager.isLoggedIn()) {
+            AppState.currentUser = sessionManager.getCurrentUser()
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -35,7 +47,11 @@ fun FisioNavGraph(
     ) {
         composable("login") {
             LoginScreen(
-                onNavigateToUserArea = { navController.navigate("userArea") },
+                onNavigateToUserArea = {
+                    navController.navigate("userArea") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
                 onNavigateToRegister = { navController.navigate("register") }
             )
         }
@@ -50,7 +66,10 @@ fun FisioNavGraph(
             )
         }
         composable("userArea") {
+            val user = AppState.currentUser
             UserAreaScreen(
+                userName = user?.fullName?.ifBlank { "John Doe" } ?: "John Doe",
+                userProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento de Software" } ?: "Analista de Desenvolvimento de Software",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToMyList = { navController.navigate("myList") },
@@ -59,6 +78,8 @@ fun FisioNavGraph(
                 onNavigateToTutorial = { exerciseId: String -> navController.navigate("exerciseDetail/$exerciseId") },
                 onNavigateToErgonomicsList = { navController.navigate("ergonomics") },
                 onSwitchUser = {
+                    sessionManager.clearSession()
+                    AppState.currentUser = null
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
@@ -212,7 +233,11 @@ fun FisioNavGraph(
             )
         }
         composable("editAccount") {
+            val user = AppState.currentUser
             EditAccountScreen(
+                initialFullName = user?.fullName?.ifBlank { "John Doe Da Silva" } ?: "John Doe Da Silva",
+                initialEmail = user?.email?.ifBlank { "JohnDoe@gmail.com" } ?: "JohnDoe@gmail.com",
+                initialProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento..." } ?: "Analista de Desenvolvimento...",
                 onNavigateBack = { navController.popBackStack() },
                 onSaveSuccess = { navController.popBackStack() }
             )
