@@ -17,11 +17,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,17 +66,24 @@ fun ErgonomicsListScreen(
     onNavigateToExerciseSearch: () -> Unit = {},
     onNavigateToMyList: () -> Unit = {},
     onNavigateToEditAccount: () -> Unit = {},
-    onSwitchUser: () -> Unit = {}
+    onSwitchUser: () -> Unit = {},
+    onCreateTip: (String, String) -> Unit = { _, _ -> }
 ) {
     var selectedTab by remember { mutableIntStateOf(1) } // 0 = Lista de Exercícios, 1 = Dicas de Ergonomia
+    var showAddDialog by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var newTipTitle by remember { androidx.compose.runtime.mutableStateOf("") }
+    var newTipContent by remember { androidx.compose.runtime.mutableStateOf("") }
 
     val ergonomicsTips = AppState.allErgonomicsTips
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
         // Expandable Header Component
         ExpandableHeader(
             userName = userName,
@@ -216,6 +232,76 @@ fun ErgonomicsListScreen(
             }
         }
     }
+
+    // Botão flutuante para cadastrar nova dica (POST /api/dicas-ergonomia)
+    FloatingActionButton(
+        onClick = {
+            newTipTitle = ""
+            newTipContent = ""
+            showAddDialog = true
+        },
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = Color.White,
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(24.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = "Adicionar Nova Dica"
+        )
+    }
+
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            title = {
+                Text(
+                    text = "Nova Dica de Ergonomia",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = newTipTitle,
+                        onValueChange = { newTipTitle = it },
+                        label = { Text("Título da Dica") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = newTipContent,
+                        onValueChange = { newTipContent = it },
+                        label = { Text("Orientações e Passos") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 6
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newTipTitle.isNotBlank() && newTipContent.isNotBlank()) {
+                            onCreateTip(newTipTitle.trim(), newTipContent.trim())
+                            showAddDialog = false
+                        }
+                    }
+                ) {
+                    Text("Salvar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showAddDialog = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}
 }
 
 @Composable
