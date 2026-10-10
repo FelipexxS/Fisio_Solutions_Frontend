@@ -68,15 +68,16 @@ fun ExerciseListScreen(
     onNavigateToEditAccount: () -> Unit = {},
     onSwitchUser: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val exerciseRepository = androidx.compose.runtime.remember {
+        br.com.fisiosolutions.data.repository.ExerciseRepository.getInstance(context)
+    }
+
     var selectedTab by remember { mutableStateOf(0) } // 0 = Lista de Exercícios, 1 = Dicas de Ergonomia
     val categories = AppState.categories
     val selectedCategory = AppState.currentSelectedCategory
 
-    val exercises = remember {
-        mutableStateListOf(*AppState.allExercises.toTypedArray())
-    }
-
-    val filteredExercises = exercises.filter { it.category == selectedCategory }
+    val filteredExercises = AppState.allExercises.filter { it.category == selectedCategory }
     val totalCategoryExercises = filteredExercises.size
     val totalSavedCategoryExercises = filteredExercises.count { it.isSaved }
 
@@ -257,9 +258,10 @@ fun ExerciseListScreen(
                     exercise = exercise,
                     onItemClick = { onNavigateToDetail(exercise.id) },
                     onToggleSave = {
-                        val index = exercises.indexOfFirst { e -> e.id == exercise.id }
-                        if (index != -1) {
-                            exercises[index] = exercises[index].copy(isSaved = !exercises[index].isSaved)
+                        if (exercise.isSaved) {
+                            exerciseRepository.removeExerciseFromUserList(exercise.id)
+                        } else {
+                            exerciseRepository.addExerciseToUserList(exercise.id)
                         }
                     }
                 )

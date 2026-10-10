@@ -33,11 +33,21 @@ fun FisioNavGraph(
         br.com.fisiosolutions.data.local.SessionManager.getInstance(context)
     }
 
-    // Inicializa o usuário da sessão ativa caso já esteja autenticado
+    val exerciseRepository = androidx.compose.runtime.remember {
+        br.com.fisiosolutions.data.repository.ExerciseRepository.getInstance(context)
+    }
+
+    val ergonomicsRepository = androidx.compose.runtime.remember {
+        br.com.fisiosolutions.data.repository.ErgonomicsRepository.getInstance(context)
+    }
+
+    // Inicializa o usuário da sessão ativa caso já esteja autenticado e sincroniza listas salvas e dicas de ergonomia
     androidx.compose.runtime.LaunchedEffect(Unit) {
         if (AppState.currentUser == null && sessionManager.isLoggedIn()) {
             AppState.currentUser = sessionManager.getCurrentUser()
         }
+        exerciseRepository.syncSavedExercises()
+        ergonomicsRepository.syncTips()
     }
 
     NavHost(
@@ -158,7 +168,10 @@ fun FisioNavGraph(
             )
         }
         composable("ergonomics") {
+            val user = AppState.currentUser
             ErgonomicsListScreen(
+                userName = user?.fullName?.ifBlank { "John Doe" } ?: "John Doe",
+                userProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento de Software" } ?: "Analista de Desenvolvimento de Software",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToHome = {
@@ -176,9 +189,14 @@ fun FisioNavGraph(
                 onNavigateToMyList = { navController.navigate("myList") },
                 onNavigateToEditAccount = { navController.navigate("editAccount") },
                 onSwitchUser = {
+                    sessionManager.clearSession()
+                    AppState.currentUser = null
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onCreateTip = { title, content ->
+                    ergonomicsRepository.createTip(title, content)
                 }
             )
         }
@@ -191,12 +209,16 @@ fun FisioNavGraph(
             val tipTitle = tip?.title ?: "Dica de Ergonomia"
             val imageResId = tip?.imageResId ?: R.drawable.ergonomics_banner
             val content = tip?.content ?: "Conteúdo detalhado da dica de ergonomia..."
+            val user = AppState.currentUser
 
             ErgonomicsDetailScreen(
                 tipId = tipId,
+                tipNumericId = tip?.numericId ?: 0,
                 tipTitle = tipTitle,
                 imageResId = imageResId,
                 content = content,
+                userName = user?.fullName?.ifBlank { "John Doe" } ?: "John Doe",
+                userProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento de Software" } ?: "Analista de Desenvolvimento de Software",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToHome = {
@@ -212,9 +234,18 @@ fun FisioNavGraph(
                 onNavigateToMyList = { navController.navigate("myList") },
                 onNavigateToEditAccount = { navController.navigate("editAccount") },
                 onSwitchUser = {
+                    sessionManager.clearSession()
+                    AppState.currentUser = null
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onDeleteTip = { numericId: Int ->
+                    ergonomicsRepository.deleteTip(numericId)
+                    navController.popBackStack()
+                },
+                onUpdateTip = { numericId: Int, newTitle: String, newContent: String ->
+                    ergonomicsRepository.updateTip(numericId, newTitle, newContent)
                 }
             )
         }

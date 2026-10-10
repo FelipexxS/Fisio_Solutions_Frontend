@@ -73,20 +73,17 @@ fun UserAreaScreen(
     onNavigateToErgonomicsList: () -> Unit = {},
     onSwitchUser: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val exerciseRepository = androidx.compose.runtime.remember {
+        br.com.fisiosolutions.data.repository.ExerciseRepository.getInstance(context)
+    }
+
     val scrollState = rememberScrollState()
 
     val categories = AppState.categories
     val selectedCategory = AppState.currentSelectedCategory
 
-    val savedExercises = remember {
-        mutableStateListOf(
-            *AppState.allExercises.filter { it.isSaved }.map {
-                SavedExercise(it.id, it.title, it.category, it.imageResId)
-            }.toTypedArray()
-        )
-    }
-
-    val filteredExercises = savedExercises.filter { it.category == selectedCategory }
+    val filteredExercises = AppState.getSavedExercisesForCategory(selectedCategory)
 
     Column(
         modifier = modifier
@@ -298,7 +295,7 @@ fun UserAreaScreen(
                             index = index + 1,
                             exercise = exercise,
                             onStart = { onNavigateToTutorial(exercise.id) },
-                            onDelete = { savedExercises.remove(exercise) }
+                            onDelete = { exerciseRepository.removeExerciseFromUserList(exercise.id) }
                         )
                     }
                 }
@@ -391,7 +388,7 @@ private fun MetricItem(
 @Composable
 private fun SavedExerciseCard(
     index: Int,
-    exercise: SavedExercise,
+    exercise: br.com.fisiosolutions.domain.model.Exercise,
     onStart: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier

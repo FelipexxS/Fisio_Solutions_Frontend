@@ -1,28 +1,34 @@
 package br.com.fisiosolutions.data
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import br.com.fisiosolutions.R
 import br.com.fisiosolutions.domain.model.Exercise
+import br.com.fisiosolutions.domain.model.UserProfile
 
 data class ErgonomicsTip(
     val id: String,
+    val numericId: Int = 0,
     val title: String,
-    val imageResId: Int,
-    val content: String
+    val imageResId: Int = R.drawable.ergonomics_banner,
+    val content: String,
+    val imageUrl: String? = null
 )
 
 object AppState {
-    var currentUser by mutableStateOf<br.com.fisiosolutions.domain.model.UserProfile?>(null)
+    var currentUser by mutableStateOf<UserProfile?>(null)
     var currentSelectedCategory by mutableStateOf("Coluna")
 
     val categories = listOf("Coluna", "Pescoço", "Braços", "Pernas")
 
-    val allExercises = listOf(
+    // Lista reativa observável em todo o Compose (Dashboard, MyExercises, ExerciseList)
+    val allExercises = mutableStateListOf(
         // Categoria: Coluna (5 exercícios reais)
         Exercise(
             id = "coluna_1",
+            numericId = 1,
             title = "Cat-Cow (Gato e Vaca)",
             category = "Coluna",
             imageResId = R.drawable.exercise_ilustration_1,
@@ -32,6 +38,7 @@ object AppState {
         ),
         Exercise(
             id = "coluna_2",
+            numericId = 2,
             title = "Ponte Pélvica (Glute Bridge)",
             category = "Coluna",
             imageResId = R.drawable.exercise_ilustration_2,
@@ -41,6 +48,7 @@ object AppState {
         ),
         Exercise(
             id = "coluna_3",
+            numericId = 3,
             title = "Abraço de Joelhos no Peito",
             category = "Coluna",
             imageResId = R.drawable.exercise_ilustration_3,
@@ -50,6 +58,7 @@ object AppState {
         ),
         Exercise(
             id = "coluna_4",
+            numericId = 4,
             title = "Exercício do Super-Homem",
             category = "Coluna",
             imageResId = R.drawable.exercise_ilustration_4,
@@ -59,6 +68,7 @@ object AppState {
         ),
         Exercise(
             id = "coluna_5",
+            numericId = 5,
             title = "Rotação de Tronco Deitado",
             category = "Coluna",
             imageResId = R.drawable.exercise_ilustration_5,
@@ -70,6 +80,7 @@ object AppState {
         // Categoria: Pescoço (4 exercícios reais)
         Exercise(
             id = "pescoco_1",
+            numericId = 6,
             title = "Inclinação Lateral do Pescoço",
             category = "Pescoço",
             imageResId = R.drawable.exercise_ilustration_1,
@@ -79,6 +90,7 @@ object AppState {
         ),
         Exercise(
             id = "pescoco_2",
+            numericId = 7,
             title = "Retração Cervical (Queixo Duplo)",
             category = "Pescoço",
             imageResId = R.drawable.exercise_ilustration_2,
@@ -88,6 +100,7 @@ object AppState {
         ),
         Exercise(
             id = "pescoco_3",
+            numericId = 8,
             title = "Rotação Cervical Suave",
             category = "Pescoço",
             imageResId = R.drawable.exercise_ilustration_3,
@@ -97,6 +110,7 @@ object AppState {
         ),
         Exercise(
             id = "pescoco_4",
+            numericId = 9,
             title = "Alongamento Flexor Anterior",
             category = "Pescoço",
             imageResId = R.drawable.exercise_ilustration_4,
@@ -108,6 +122,7 @@ object AppState {
         // Categoria: Braços (4 exercícios reais)
         Exercise(
             id = "bracos_1",
+            numericId = 10,
             title = "Alongamento de Flexores do Punho",
             category = "Braços",
             imageResId = R.drawable.exercise_ilustration_4,
@@ -117,6 +132,7 @@ object AppState {
         ),
         Exercise(
             id = "bracos_2",
+            numericId = 11,
             title = "Alongamento de Tríceps sobre a Cabeça",
             category = "Braços",
             imageResId = R.drawable.exercise_ilustration_3,
@@ -126,6 +142,7 @@ object AppState {
         ),
         Exercise(
             id = "bracos_3",
+            numericId = 12,
             title = "Alongamento Cruzado de Ombro",
             category = "Braços",
             imageResId = R.drawable.exercise_ilustration_1,
@@ -135,6 +152,7 @@ object AppState {
         ),
         Exercise(
             id = "bracos_4",
+            numericId = 13,
             title = "Rotação de Punhos e Antebraço",
             category = "Braços",
             imageResId = R.drawable.exercise_ilustration_2,
@@ -146,6 +164,7 @@ object AppState {
         // Categoria: Pernas (4 exercícios reais)
         Exercise(
             id = "pernas_1",
+            numericId = 14,
             title = "Alongamento de Isquiotibiais",
             category = "Pernas",
             imageResId = R.drawable.exercise_ilustration_5,
@@ -155,15 +174,17 @@ object AppState {
         ),
         Exercise(
             id = "pernas_2",
+            numericId = 15,
             title = "Alongamento de Panturrilha na Parede",
             category = "Pernas",
             imageResId = R.drawable.exercise_ilustration_1,
             isSaved = true,
-            tutorialTitle = "ALÍVIO DE TENSÃO NAS PANTURRILHAS",
+            tutorialTitle = "ALONGAMENTO DE PANTURRILHA",
             instructions = "Apoie as mãos em uma parede e dê um passo para trás com a perna direita, mantendo o calcanhar no chão e o joelho esticado. Dobre o joelho esquerdo para a frente até sentir a panturrilha direita. Mantenha 30 segundos de cada lado."
         ),
         Exercise(
             id = "pernas_3",
+            numericId = 16,
             title = "Alongamento de Quadríceps em Pé",
             category = "Pernas",
             imageResId = R.drawable.exercise_ilustration_2,
@@ -173,6 +194,7 @@ object AppState {
         ),
         Exercise(
             id = "pernas_4",
+            numericId = 17,
             title = "Elevação de Calcanhares",
             category = "Pernas",
             imageResId = R.drawable.exercise_ilustration_3,
@@ -182,36 +204,46 @@ object AppState {
         )
     )
 
-    val allErgonomicsTips = listOf(
+    val allErgonomicsTips = mutableStateListOf(
         ErgonomicsTip(
             id = "tip_1",
+            numericId = 1,
             title = "Altura Correta do Monitor e Distância dos Olhos",
             imageResId = R.drawable.ergonomics_banner,
-            content = "Posicionar o monitor adequadamente previne dores no pescoço e fadiga visual durante longas jornadas de trabalho.\n\nPrincipais orientações:\n1. Mantenha o topo da tela na altura dos seus olhos ou ligeiramente abaixo.\n2. A distância entre a tela e seus olhos deve ser equivalente ao comprimento do seu braço (aproximadamente 50 a 70 cm).\n3. Incline levemente a tela para trás (10 a 20 graus) para evitar reflexos da iluminação ambiente."
+            content = "Posicionar o monitor adequadamente previne dores no pescoço e fadiga visual durante longas jornadas de trabalho.\n\nPrincipais orientações:\n1. Mantenha o topo da tela na altura dos seus olhos ou ligeiramente abaixo.\n2. A distância entre a tela e seus olhos deve ser equivalente ao comprimento do seu braço (aproximadamente 50 a 70 cm).\n3. Incline levemente a tela para trás (10 a 20 graus) para evitar reflexos da iluminação ambiente.",
+            imageUrl = "ergonomics_banner"
         ),
         ErgonomicsTip(
             id = "tip_2",
+            numericId = 2,
             title = "Ajuste da Cadeira e Postura Sentada",
             imageResId = R.drawable.exercise_ilustration_1,
-            content = "Uma cadeira bem regulada distribui o peso do corpo de forma uniforme e reduz a pressão sobre a coluna vertebral.\n\nComo ajustar sua cadeira:\n1. Ajuste a altura do assento para que os joelhos fiquem dobrados em um ângulo de 90 graus e ambos os pés fiquem totalmente apoiados no chão.\n2. Utilize o suporte lombar da cadeira para manter a curva natural da parte inferior das costas.\n3. Ajuste os apoios de braço para que os cotovelos fiquem em 90 graus e os ombros permanecam relaxados."
+            content = "Uma cadeira bem regulada distribui o peso do corpo de forma uniforme e reduz a pressão sobre a coluna vertebral.\n\nComo ajustar sua cadeira:\n1. Ajuste a altura do assento para que os joelhos fiquem dobrados em um ângulo de 90 graus e ambos os pés fiquem totalmente apoiados no chão.\n2. Utilize o suporte lombar da cadeira para manter a curva natural da parte inferior das costas.\n3. Ajuste os apoios de braço para que os cotovelos fiquem em 90 graus e os ombros permaneçam relaxados.",
+            imageUrl = "exercise_ilustration_1"
         ),
         ErgonomicsTip(
             id = "tip_3",
+            numericId = 3,
             title = "Posicionamento do Teclado e Mouse (Prevenção LER/DORT)",
             imageResId = R.drawable.exercise_ilustration_2,
-            content = "LER (Lesão por Esforço Repetitivo) e DORT (Distúrbios Osteomusculares Relacionados ao Trabalho) são frequentes em quem digita por muitas horas.\n\nRecomendações fundamentais:\n1. Mantenha o teclado e o mouse no mesmo nível e próximos ao corpo.\n2. Evite dobrar os punhos para cima ou para os lados durante a digitação; os punhos devem permanecer neutros e retos.\n3. Utilize descansos de punho macios e mouses ergonômicos ou verticais se sentir desconforto frequente."
+            content = "LER (Lesão por Esforço Repetitivo) e DORT (Distúrbios Osteomusculares Relacionados ao Trabalho) são frequentes em quem digita por muitas horas.\n\nRecomendações fundamentais:\n1. Mantenha o teclado e o mouse no mesmo nível e próximos ao corpo.\n2. Evite dobrar os punhos para cima ou para os lados durante a digitação; os punhos devem permanecer neutros e retos.\n3. Utilize descansos de punho macios e mouses ergonômicos ou verticais se sentir desconforto frequente.",
+            imageUrl = "exercise_ilustration_2"
         ),
         ErgonomicsTip(
             id = "tip_4",
+            numericId = 4,
             title = "A Regra 20-20-20 para Alívio do Cansaço Visual",
             imageResId = R.drawable.exercise_ilustration_3,
-            content = "Olhar para telas por longos períodos reduz a frequência de piscadas, gerando ressecamento nos olhos e dores de cabeça.\n\nComo praticar a regra 20-20-20:\n1. A cada 20 minutos de trabalho em frente à tela...\n2. Olhe para um objeto ou ponto situado a pelo menos 6 metros (20 pés) de distância.\n3. Mantenha o foco nesse ponto distante por 20 segundos.\nIsso permite que os músculos oculares relaxem completamente."
+            content = "Olhar para telas por longos períodos reduz a frequência de piscadas, gerando ressecamento nos olhos e dores de cabeça.\n\nComo praticar a regra 20-20-20:\n1. A cada 20 minutos de trabalho em frente à tela...\n2. Olhe para um objeto ou ponto situado a pelo menos 6 metros (20 pés) de distância.\n3. Mantenha o foco nesse ponto distante por 20 segundos.\nIsso permite que os músculos oculares relaxem completamente.",
+            imageUrl = "exercise_ilustration_3"
         ),
         ErgonomicsTip(
             id = "tip_5",
+            numericId = 5,
             title = "Pausas Ativas e Microintervalos Durante a Jornada",
             imageResId = R.drawable.exercise_ilustration_4,
-            content = "Permanecer na mesma posição por mais de 1 hora consecutiva reduz a circulação sanguínea e aumenta a rigidez muscular.\n\nHábitos saudáveis diários:\n1. Faça micropausas de 2 a 3 minutos a cada hora para se levantar, caminhar um pouco e beber água.\n2. Realize alongamentos leves de pescoço, ombros e punhos durante as pausas.\n3. Alterne entre trabalhar sentado e em pé caso possua uma mesa com regulagem de altura."
+            content = "Permanecer na mesma posição por mais de 1 hora consecutiva reduz a circulação sanguínea e aumenta a rigidez muscular.\n\nHábitos saudáveis diários:\n1. Faça micropausas de 2 a 3 minutos a cada hora para se levantar, caminhar um pouco e beber água.\n2. Realize alongamentos leves de pescoço, ombros e punhos durante as pausas.\n3. Alterne entre trabalhar sentado e em pé caso possua uma mesa com regulagem de altura.",
+            imageUrl = "exercise_ilustration_4"
         )
     )
 
@@ -220,7 +252,75 @@ object AppState {
     }
 
     fun getErgonomicsTipById(id: String): ErgonomicsTip? {
-        return allErgonomicsTips.find { it.id == id }
+        return allErgonomicsTips.find { it.id == id || it.numericId.toString() == id }
+    }
+
+    fun setErgonomicsTips(tips: List<ErgonomicsTip>) {
+        allErgonomicsTips.clear()
+        allErgonomicsTips.addAll(tips)
+    }
+
+    fun addOrUpdateErgonomicsTip(tip: ErgonomicsTip) {
+        val idx = allErgonomicsTips.indexOfFirst {
+            (tip.numericId > 0 && it.numericId == tip.numericId) || it.id == tip.id
+        }
+        if (idx >= 0) {
+            allErgonomicsTips[idx] = tip
+        } else {
+            allErgonomicsTips.add(tip)
+        }
+    }
+
+    fun removeErgonomicsTip(numericId: Int) {
+        allErgonomicsTips.removeAll { it.numericId == numericId || it.id == "tip_$numericId" }
+    }
+
+    // ==========================================
+    // MÉTODOS REATIVOS PARA ATUALIZAÇÃO DO DASHBOARD
+    // ==========================================
+
+    fun getSavedExercises(): List<Exercise> {
+        return allExercises.filter { it.isSaved }
+    }
+
+    fun getSavedExercisesForCategory(category: String): List<Exercise> {
+        return allExercises.filter { it.isSaved && it.category == category }
+    }
+
+    fun getSavedCountForCategory(category: String): Int {
+        return allExercises.count { it.isSaved && it.category == category }
+    }
+
+    fun getTotalSavedCount(): Int {
+        return allExercises.count { it.isSaved }
+    }
+
+    /**
+     * Atualização instantânea dos indicadores do Dashboard (ex: "Exercícios Salvos: 3/10").
+     */
+    fun setExerciseSaved(exerciseId: String, saved: Boolean) {
+        val index = allExercises.indexOfFirst { it.id == exerciseId }
+        if (index != -1) {
+            allExercises[index] = allExercises[index].copy(isSaved = saved)
+        }
+    }
+
+    fun toggleCompletedToday(exerciseId: String) {
+        val index = allExercises.indexOfFirst { it.id == exerciseId }
+        if (index != -1) {
+            allExercises[index] = allExercises[index].copy(
+                isCompletedToday = !allExercises[index].isCompletedToday
+            )
+        }
+    }
+
+    fun syncSavedExercises(savedNumericIds: Set<Int>) {
+        for (i in allExercises.indices) {
+            val shouldBeSaved = savedNumericIds.contains(allExercises[i].numericId)
+            if (allExercises[i].isSaved != shouldBeSaved) {
+                allExercises[i] = allExercises[i].copy(isSaved = shouldBeSaved)
+            }
+        }
     }
 }
 

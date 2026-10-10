@@ -79,6 +79,11 @@ fun MyExercisesScreen(
     onNavigateToEditAccount: () -> Unit = {},
     onSwitchUser: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val exerciseRepository = androidx.compose.runtime.remember {
+        br.com.fisiosolutions.data.repository.ExerciseRepository.getInstance(context)
+    }
+
     var searchQuery by remember { mutableStateOf("") }
     var tempSearchQuery by remember { mutableStateOf("") }
     var isSearchDialogOpen by remember { mutableStateOf(false) }
@@ -87,10 +92,7 @@ fun MyExercisesScreen(
     var isFilterMenuExpanded by remember { mutableStateOf(false) }
 
     val categories = AppState.categories
-
-    val savedExercises = remember {
-        mutableStateListOf(*AppState.allExercises.filter { it.isSaved }.toTypedArray())
-    }
+    val savedExercises = AppState.getSavedExercises()
 
     val filteredExercises = savedExercises.filter { exercise ->
         val matchesCategory = selectedCategoryFilter == null || exercise.category == selectedCategoryFilter
@@ -329,15 +331,10 @@ fun MyExercisesScreen(
                         exercise = exercise,
                         onItemClick = { onNavigateToDetail(exercise.id) },
                         onToggleComplete = {
-                            val index = savedExercises.indexOfFirst { e -> e.id == exercise.id }
-                            if (index != -1) {
-                                savedExercises[index] = savedExercises[index].copy(
-                                    isCompletedToday = !savedExercises[index].isCompletedToday
-                                )
-                            }
+                            exerciseRepository.toggleCompletedToday(exercise.id)
                         },
                         onRemove = {
-                            savedExercises.remove(exercise)
+                            exerciseRepository.removeExerciseFromUserList(exercise.id)
                         }
                     )
                 }
