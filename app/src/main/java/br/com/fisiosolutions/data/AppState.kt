@@ -14,6 +14,7 @@ data class ErgonomicsTip(
 )
 
 object AppState {
+    var currentUser by mutableStateOf<br.com.fisiosolutions.domain.model.UserProfile?>(null)
     var currentSelectedCategory by mutableStateOf("Coluna")
 
     val categories = listOf("Coluna", "Pescoço", "Braços", "Pernas")
