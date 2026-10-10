@@ -3,7 +3,6 @@ package br.com.fisiosolutions.presentation.register
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,7 +44,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -156,6 +161,7 @@ fun RegisterScreen(
                     },
                     label = "Nome Completo",
                     placeholder = "Ex: John Doe Da Silva",
+                    semanticLabel = "Preencha seu nome completo neste campo.",
                     isError = nameError != null,
                     supportingText = nameError,
                     keyboardOptions = KeyboardOptions(
@@ -183,6 +189,7 @@ fun RegisterScreen(
                     },
                     label = "Data de Nascimento",
                     placeholder = "Ex: 05/09/1999",
+                    semanticLabel = "Preencha sua data de nascimento começando pelo dia, depois mês e finalmente ano, neste campo.",
                     isError = birthError != null,
                     supportingText = birthError,
                     visualTransformation = DateVisualTransformation(),
@@ -205,6 +212,7 @@ fun RegisterScreen(
                     },
                     label = "E-mail",
                     placeholder = "Ex: JohnDoe@gmail.com",
+                    semanticLabel = "Preencha o e-mail que deseja cadastrar neste campo.",
                     isError = emailError != null,
                     supportingText = emailError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -226,6 +234,7 @@ fun RegisterScreen(
                     },
                     label = "Profissão",
                     placeholder = "Ex: Analista de Desenvolvimento...",
+                    semanticLabel = "Preencha sua profissão neste campo.",
                     isError = professionError != null,
                     supportingText = professionError,
                     keyboardOptions = KeyboardOptions(
@@ -272,7 +281,10 @@ fun RegisterScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .semantics {
+                            stateDescription = "Insira a senha desejada"
+                        },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -326,7 +338,10 @@ fun RegisterScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .semantics {
+                            contentDescription = "Repita nesse campo a mesma senha que cadastrou no campo de senha."
+                        },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -473,7 +488,9 @@ fun RegisterScreen(
                     .height(80.dp)
             ) {
                 Canvas(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clearAndSetSemantics { }
                 ) {
                     val w = size.width
                     val h = size.height
@@ -505,6 +522,7 @@ private fun RegisterTextField(
     onValueChange: (String) -> Unit,
     label: String,
     placeholder: String,
+    semanticLabel: String,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     supportingText: String? = null,
@@ -522,13 +540,7 @@ private fun RegisterTextField(
                 style = MaterialTheme.typography.labelSmall
             )
         },
-        placeholder = {
-            Text(
-                text = placeholder,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall
-            )
-        },
+        placeholder = { Text(text = placeholder) },
         singleLine = true,
         isError = isError,
         supportingText = if (supportingText != null) {
@@ -538,7 +550,10 @@ private fun RegisterTextField(
         keyboardOptions = keyboardOptions,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+            .semantics {
+                stateDescription = semanticLabel
+            },
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -549,20 +564,24 @@ private fun RegisterTextField(
         ),
         trailingIcon = {
             if (value.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable { onClear() },
-                    contentAlignment = Alignment.Center
+                IconButton(
+                    onClick = onClear,
+                    modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Limpar $label",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(14.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Limpar $label",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
             }
         }

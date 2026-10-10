@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -213,8 +214,8 @@ fun UserAreaScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable(onClick = onNavigateToMyList)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .clickable(role = Role.Button, onClick = onNavigateToMyList)
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
                     Text(
                         text = "Ver em lista",
@@ -451,7 +452,7 @@ private fun SavedExerciseCard(
                 onClick = onStart,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(36.dp),
+                    .height(44.dp),
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 contentPadding = PaddingValues(vertical = 0.dp)
@@ -470,7 +471,7 @@ private fun SavedExerciseCard(
                 onClick = onDelete,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(36.dp),
+                    .height(44.dp),
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color(0xFFE53935)),
                 contentPadding = PaddingValues(vertical = 0.dp)
