@@ -57,8 +57,8 @@ import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 @Composable
 fun ExerciseListScreen(
     modifier: Modifier = Modifier,
-    userName: String = "John Doe",
-    userProfession: String = "Analista de Desenvolvimento de Software",
+    userName: String = AppState.currentUser?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+    userProfession: String = AppState.currentUser?.profession?.ifBlank { "Paciente" } ?: "Paciente",
     isDarkTheme: Boolean = false,
     onToggleTheme: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},

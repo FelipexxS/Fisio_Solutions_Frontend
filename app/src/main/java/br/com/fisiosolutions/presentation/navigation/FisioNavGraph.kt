@@ -76,10 +76,10 @@ fun FisioNavGraph(
             )
         }
         composable("userArea") {
-            val user = AppState.currentUser
+            val user = AppState.currentUser ?: sessionManager.getCurrentUser()
             UserAreaScreen(
-                userName = user?.fullName?.ifBlank { "John Doe" } ?: "John Doe",
-                userProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento de Software" } ?: "Analista de Desenvolvimento de Software",
+                userName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                userProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToMyList = { navController.navigate("myList") },
@@ -97,7 +97,10 @@ fun FisioNavGraph(
             )
         }
         composable("exerciseList") {
+            val user = AppState.currentUser ?: sessionManager.getCurrentUser()
             ExerciseListScreen(
+                userName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                userProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToHome = {
@@ -139,6 +142,8 @@ fun FisioNavGraph(
                 AppState.currentSelectedCategory = exercise.category
             }
 
+            val user = AppState.currentUser ?: sessionManager.getCurrentUser()
+
             ExerciseDetailScreen(
                 exerciseId = exerciseId,
                 exerciseTitle = exerciseTitle,
@@ -146,6 +151,8 @@ fun FisioNavGraph(
                 tutorialTitle = tutorialTitle,
                 imageResId = imageResId,
                 instructions = instructions,
+                userName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                userProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToHome = {
@@ -168,10 +175,10 @@ fun FisioNavGraph(
             )
         }
         composable("ergonomics") {
-            val user = AppState.currentUser
+            val user = AppState.currentUser ?: sessionManager.getCurrentUser()
             ErgonomicsListScreen(
-                userName = user?.fullName?.ifBlank { "John Doe" } ?: "John Doe",
-                userProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento de Software" } ?: "Analista de Desenvolvimento de Software",
+                userName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                userProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToHome = {
@@ -209,7 +216,7 @@ fun FisioNavGraph(
             val tipTitle = tip?.title ?: "Dica de Ergonomia"
             val imageResId = tip?.imageResId ?: R.drawable.ergonomics_banner
             val content = tip?.content ?: "Conteúdo detalhado da dica de ergonomia..."
-            val user = AppState.currentUser
+            val user = AppState.currentUser ?: sessionManager.getCurrentUser()
 
             ErgonomicsDetailScreen(
                 tipId = tipId,
@@ -217,8 +224,8 @@ fun FisioNavGraph(
                 tipTitle = tipTitle,
                 imageResId = imageResId,
                 content = content,
-                userName = user?.fullName?.ifBlank { "John Doe" } ?: "John Doe",
-                userProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento de Software" } ?: "Analista de Desenvolvimento de Software",
+                userName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                userProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateToHome = {
@@ -250,7 +257,10 @@ fun FisioNavGraph(
             )
         }
         composable("myList") {
+            val user = AppState.currentUser ?: sessionManager.getCurrentUser()
             MyExercisesScreen(
+                userName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                userProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
                 isDarkTheme = isDarkTheme,
                 onToggleTheme = onToggleTheme,
                 onNavigateBack = { navController.popBackStack() },
@@ -264,11 +274,11 @@ fun FisioNavGraph(
             )
         }
         composable("editAccount") {
-            val user = AppState.currentUser
+            val user = AppState.currentUser ?: sessionManager.getCurrentUser()
             EditAccountScreen(
-                initialFullName = user?.fullName?.ifBlank { "John Doe Da Silva" } ?: "John Doe Da Silva",
-                initialEmail = user?.email?.ifBlank { "JohnDoe@gmail.com" } ?: "JohnDoe@gmail.com",
-                initialProfession = user?.profession?.ifBlank { "Analista de Desenvolvimento..." } ?: "Analista de Desenvolvimento...",
+                initialFullName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                initialEmail = user?.email?.ifBlank { "usuario@email.com" } ?: "usuario@email.com",
+                initialProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
                 onNavigateBack = { navController.popBackStack() },
                 onSaveSuccess = { navController.popBackStack() }
             )

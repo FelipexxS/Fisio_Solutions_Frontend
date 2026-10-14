@@ -42,6 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -179,7 +181,10 @@ fun UserAreaScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                        ),
+                        modifier = Modifier.semantics {
+                            contentDescription = "Procurar Exercícios. Botão."
+                        }
                     ) {
                         Text(
                             text = "Procurar Exercícios",
@@ -215,6 +220,9 @@ fun UserAreaScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .clickable(role = Role.Button, onClick = onNavigateToMyList)
+                        .semantics {
+                            contentDescription = "Ver minhas listas de exercícios salvas em formato de lista. Botão."
+                        }
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
                     Text(
@@ -328,7 +336,10 @@ fun UserAreaScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    ),
+                    modifier = Modifier.semantics {
+                        contentDescription = "Explorar lista completa de dicas de ergonomia. Botão."
+                    }
                 ) {
                     Text(
                         text = "Explorar Lista",
@@ -360,9 +371,14 @@ private fun MetricItem(
     label: String,
     modifier: Modifier = Modifier
 ) {
+    val cleanLabel = label.replace("\n", " ")
+    val combinedText = "$value $cleanLabel"
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
+        modifier = modifier.semantics(mergeDescendants = true) {
+            contentDescription = combinedText
+        }
     ) {
         Text(
             text = value,
@@ -409,41 +425,51 @@ private fun SavedExerciseCard(
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Index Number Prepend
-            Text(
-                text = "$index",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp
-                ),
-                color = MaterialTheme.colorScheme.primary,
+            // Header do Cartão (Índice, Imagem e Título Mesclados Semântica para evitar leituras fragmentadas/duplicadas)
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 4.dp),
-                textAlign = TextAlign.Start
-            )
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "Exercício $index: ${exercise.title}"
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Index Number
+                Text(
+                    text = "$index",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 4.dp),
+                    textAlign = TextAlign.Start
+                )
 
-            // Exercise Illustration Image
-            Image(
-                painter = painterResource(id = exercise.imageResId),
-                contentDescription = exercise.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-            )
+                // Exercise Illustration Image (contentDescription = null para evitar leitura duplicada)
+                Image(
+                    painter = painterResource(id = exercise.imageResId),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // Exercise Title
-            Text(
-                text = exercise.title,
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                minLines = 2,
-                modifier = Modifier.fillMaxWidth()
-            )
+                // Exercise Title
+                Text(
+                    text = exercise.title,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    minLines = 2,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -452,7 +478,10 @@ private fun SavedExerciseCard(
                 onClick = onStart,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(44.dp),
+                    .height(44.dp)
+                    .semantics {
+                        contentDescription = "Começar o exercício ${exercise.title}. Botão."
+                    },
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 contentPadding = PaddingValues(vertical = 0.dp)
@@ -471,7 +500,10 @@ private fun SavedExerciseCard(
                 onClick = onDelete,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(44.dp),
+                    .height(44.dp)
+                    .semantics {
+                        contentDescription = "Deletar exercício ${exercise.title} da minha lista. Botão."
+                    },
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color(0xFFE53935)),
                 contentPadding = PaddingValues(vertical = 0.dp)

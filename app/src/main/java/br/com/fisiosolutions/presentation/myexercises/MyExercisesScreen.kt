@@ -52,6 +52,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -70,8 +72,8 @@ import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 @Composable
 fun MyExercisesScreen(
     modifier: Modifier = Modifier,
-    userName: String = "John Doe",
-    userProfession: String = "Analista de Desenvolvimento de Software",
+    userName: String = AppState.currentUser?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+    userProfession: String = AppState.currentUser?.profession?.ifBlank { "Paciente" } ?: "Paciente",
     isDarkTheme: Boolean = false,
     onToggleTheme: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
@@ -493,7 +495,7 @@ private fun SavedExerciseItem(
             ) {
                 Image(
                     painter = painterResource(id = exercise.imageResId),
-                    contentDescription = exercise.title,
+                    contentDescription = null, // null para evitar leitura duplicada do título
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(10.dp)
@@ -549,7 +551,10 @@ private fun SavedExerciseItem(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(38.dp)
+                        .height(44.dp)
+                        .semantics {
+                            contentDescription = "Deletar exercício ${exercise.title} da minha lista. Botão."
+                        }
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

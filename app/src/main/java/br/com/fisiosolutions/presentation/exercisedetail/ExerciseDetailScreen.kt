@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,13 +39,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fisiosolutions.R
+import br.com.fisiosolutions.data.AppState
 import br.com.fisiosolutions.presentation.components.BreadcrumbItem
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
 import br.com.fisiosolutions.presentation.components.FisioBreadcrumb
@@ -60,8 +68,8 @@ fun ExerciseDetailScreen(
     tutorialTitle: String = "ALONGAMENTO DE QUADRIL E LOMBAR",
     imageResId: Int = R.drawable.exercise_ilustration_1,
     instructions: String = "Para alongar a lombar, deitar de barriga para cima e dobrar os joelhos mantendo os pés no chão, ou deixando uma perna esticada. Com a ajuda das mãos, trazer um joelho em direção ao peito, mantendo essa posição por cerca de 15 segundos. Fazer o mesmo com a outra perna, repetindo o movimento por 2 vezes em cada perna.\n\nLembre-se de fazer os movimentos de forma controlada, respeitando seus limites e evitando dor intensa, e se a dor persistir, consulte um médico.",
-    userName: String = "John Doe",
-    userProfession: String = "Analista de Desenvolvimento de Software",
+    userName: String = AppState.currentUser?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+    userProfession: String = AppState.currentUser?.profession?.ifBlank { "Paciente" } ?: "Paciente",
     isDarkTheme: Boolean = false,
     initialIsSaved: Boolean = false,
     initialIsCompleted: Boolean = false,
@@ -76,6 +84,7 @@ fun ExerciseDetailScreen(
     var isSaved by remember { mutableStateOf(initialIsSaved) }
     var isCompletedToday by remember { mutableStateOf(initialIsCompleted) }
 
+    val haptic = LocalHapticFeedback.current
     val scrollState = rememberScrollState()
 
     Box(
@@ -86,7 +95,7 @@ fun ExerciseDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 70.dp) // Space for bottom floating bar
+                .padding(bottom = 72.dp) // Space for bottom floating bar
         ) {
             // Expandable Header Component
             ExpandableHeader(
@@ -135,19 +144,28 @@ fun ExerciseDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Completion Checkbox Row
+                // TASK-09: Completion Checkbox Row com Semântica de Estado e Alvo Mínimo de 48dp
+                val completionDescription = if (isCompletedToday) "Exercício marcado como concluído hoje" else "Exercício não marcado como concluído hoje"
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .heightIn(min = 48.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { isCompletedToday = !isCompletedToday }
-                        .padding(vertical = 4.dp),
+                        .clickable(role = Role.Checkbox) {
+                            isCompletedToday = !isCompletedToday
+                        }
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = completionDescription
+                            stateDescription = if (isCompletedToday) "Concluído hoje" else "Não concluído"
+                        }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Checkbox(
                         checked = isCompletedToday,
-                        onCheckedChange = { isCompletedToday = it },
+                        onCheckedChange = null, // Unificado com a Row pai
                         colors = CheckboxDefaults.colors(
                             checkedColor = MaterialTheme.colorScheme.primary,
                             uncheckedColor = MaterialTheme.colorScheme.onBackground
@@ -163,7 +181,7 @@ fun ExerciseDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Tutorial Card 1: Illustration Box
+                // Tutorial Card 1: Illustration Box (TASK-08)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -192,7 +210,7 @@ fun ExerciseDetailScreen(
 
                         Image(
                             painter = painterResource(id = imageResId),
-                            contentDescription = tutorialTitle,
+                            contentDescription = "Ilustração técnica demonstrando a postura do exercício $exerciseTitle",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(180.dp)
@@ -246,19 +264,30 @@ fun ExerciseDetailScreen(
             }
         }
 
-        // Bottom Sticky Layer with Opaque Overlay
+        // TASK-10: Bottom Sticky Layer com Área de Toque 48dp e Feedback Tátil/Semântico
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(68.dp)
+                .height(72.dp)
                 .align(Alignment.BottomCenter)
-                .background(Color.Black.copy(alpha = 0.45f)),
+                .background(Color.Black.copy(alpha = 0.55f))
+                .padding(horizontal = 20.dp, vertical = 10.dp),
             contentAlignment = Alignment.Center
         ) {
             if (isSaved) {
                 Button(
-                    onClick = { isSaved = false },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        isSaved = false
+                    },
                     shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .semantics {
+                            contentDescription = "Remover $exerciseTitle da minha lista"
+                            stateDescription = "Salvo na minha lista"
+                        },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFC8E6C9),
                         contentColor = Color(0xFF1B5E20)
@@ -266,21 +295,32 @@ fun ExerciseDetailScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Salvo ",
+                            text = "Salvo na minha lista",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                         )
+                        Spacer(modifier = Modifier.width(6.dp))
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Salvo",
+                            contentDescription = null,
                             tint = AccentGreen,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
             } else {
                 Button(
-                    onClick = { isSaved = true },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        isSaved = true
+                    },
                     shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .semantics {
+                            contentDescription = "Adicionar $exerciseTitle à minha lista"
+                            stateDescription = "Não salvo"
+                        },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary

@@ -38,18 +38,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.fisiosolutions.R
+import br.com.fisiosolutions.data.AppState
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 
 @Composable
 fun ExpandableHeader(
-    userName: String = "John Doe",
-    userProfession: String = "Analista de Desenvolvimento de Software",
+    userName: String = AppState.currentUser?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+    userProfession: String = AppState.currentUser?.profession?.ifBlank { "Paciente" } ?: "Paciente",
     isDarkTheme: Boolean = false,
     initialExpanded: Boolean = false,
     onToggleTheme: () -> Unit = {},
@@ -59,6 +61,9 @@ fun ExpandableHeader(
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember { mutableStateOf(initialExpanded) }
+
+    val actionText = if (isExpanded) "Toque duas vezes para recolher o menu." else "Toque duas vezes para abrir o menu de opções."
+    val fullProfileDescription = "Perfil de $userName, $userProfession. $actionText"
 
     Card(
         modifier = modifier
@@ -78,16 +83,17 @@ fun ExpandableHeader(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(role = Role.Button) { isExpanded = !isExpanded }
-                    .semantics {
-                        stateDescription = if (isExpanded) "Menu do perfil expandido" else "Menu do perfil recolhido"
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = fullProfileDescription
+                        stateDescription = if (isExpanded) "Expandido" else "Recolhido"
                     }
                     .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // User Avatar Icon
+                // User Avatar Icon (contentDescription = null para evitar leituras duplicadas)
                 Image(
                     painter = painterResource(id = R.drawable.ic_avatar),
-                    contentDescription = "Avatar de $userName",
+                    contentDescription = null,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     modifier = Modifier.size(48.dp)
                 )
@@ -113,10 +119,10 @@ fun ExpandableHeader(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Expand/Collapse Chevron Icon
+                // Expand/Collapse Chevron Icon (contentDescription = null pois o estado já é anunciado no Row)
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (isExpanded) "Recolher menu" else "Expandir menu",
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(28.dp)
                 )

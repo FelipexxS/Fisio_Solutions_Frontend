@@ -24,8 +24,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,7 +58,7 @@ fun FisioSelectInput(
                     .heightIn(min = 48.dp)
                     .clickable(role = Role.Button) { expanded = true }
                     .semantics {
-                        stateDescription = "Categoria selecionada: $selectedOption"
+                        contentDescription = "Filtro de Categoria de Exercícios. Categoria selecionada: $selectedOption. Toque para alterar."
                     }
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
