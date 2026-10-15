@@ -48,6 +48,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -162,6 +165,7 @@ fun EditAccountScreen(
                 onValueChange = { fullName = it },
                 label = "Nome Completo",
                 placeholder = "Digite seu nome completo",
+                semanticLabel = "Preencha seu nome completo neste campo.",
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Words,
                     keyboardType = KeyboardType.Text
@@ -177,6 +181,7 @@ fun EditAccountScreen(
                 onValueChange = { email = it },
                 label = "E-mail",
                 placeholder = "Digite seu e-mail",
+                semanticLabel = "Preencha o e-mail que deseja cadastrar neste campo.",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 onClear = { email = "" }
             )
@@ -189,6 +194,7 @@ fun EditAccountScreen(
                 onValueChange = { profession = it },
                 label = "Profissão",
                 placeholder = "Digite sua profissão",
+                semanticLabel = "Preencha sua profissão neste campo.",
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
                     keyboardType = KeyboardType.Text
@@ -221,7 +227,10 @@ fun EditAccountScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .semantics {
+                        stateDescription = "Insira a senha desejada"
+                    },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -267,7 +276,10 @@ fun EditAccountScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .semantics {
+                        contentDescription = "Repita nesse campo a mesma senha que cadastrou no campo de senha."
+                    },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -341,6 +353,7 @@ private fun EditTextField(
     onValueChange: (String) -> Unit,
     label: String,
     placeholder: String,
+    semanticLabel: String,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     onClear: () -> Unit
@@ -366,7 +379,10 @@ private fun EditTextField(
         keyboardOptions = keyboardOptions,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+            .semantics {
+                stateDescription = semanticLabel
+            },
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,

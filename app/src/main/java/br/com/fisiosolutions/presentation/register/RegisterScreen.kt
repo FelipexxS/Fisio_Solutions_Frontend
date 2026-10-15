@@ -188,7 +188,7 @@ fun RegisterScreen(
                         }
                     },
                     label = "Data de Nascimento",
-                    placeholder = "Ex: 05/09/1999",
+                    placeholder = "Ex: DD/MM/AA",
                     semanticLabel = "Preencha sua data de nascimento começando pelo dia, depois mês e finalmente ano, neste campo.",
                     isError = birthError != null,
                     supportingText = birthError,
