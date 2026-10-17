@@ -176,7 +176,7 @@ fun MyExercisesScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_filter),
-                            contentDescription = "Filtrar por categoria",
+                            contentDescription = "Filtrar por todas ou uma única categoria",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp)
                         )

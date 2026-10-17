@@ -1,5 +1,7 @@
 package br.com.fisiosolutions.presentation.login
 
+import java.util.Locale
+import br.com.fisiosolutions.domain.model.UserNameFormatter
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -115,7 +117,9 @@ fun LoginScreen(
             if (account != null) {
                 val googleId = account.id ?: "google_${System.currentTimeMillis()}"
                 val googleEmail = account.email ?: "usuario.google@gmail.com"
-                val googleName = account.displayName ?: "Usuário Google"
+                val rawName = account.displayName?.ifBlank { null }
+                    ?: account.givenName?.let { g -> "$g ${account.familyName ?: ""}".trim() }?.ifBlank { null }
+                val googleName = UserNameFormatter.getBestDisplayName(rawName, googleEmail)
 
                 coroutineScope.launch {
                     val authResult = authRepository.loginWithGoogle(
@@ -141,10 +145,12 @@ fun LoginScreen(
                 // Fallback de contingência caso os Play Services do emulador/dispositivo estejam indisponíveis
                 coroutineScope.launch {
                     val fallbackEmail = if (email.isNotBlank() && authRepository.isValidEmail(email)) email else "usuario.google@gmail.com"
+                    val derivedName = UserNameFormatter.getBestDisplayName(null, fallbackEmail)
+
                     val authResult = authRepository.loginWithGoogle(
                         googleId = "google_user_${System.currentTimeMillis()}",
                         email = fallbackEmail,
-                        fullName = "Usuário Google"
+                        fullName = derivedName
                     )
                     isGoogleLoading = false
                     if (authResult.success && authResult.user != null) {

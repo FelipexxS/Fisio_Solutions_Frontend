@@ -219,8 +219,6 @@ fun FisioNavGraph(
             val user = AppState.currentUser ?: sessionManager.getCurrentUser()
 
             ErgonomicsDetailScreen(
-                tipId = tipId,
-                tipNumericId = tip?.numericId ?: 0,
                 tipTitle = tipTitle,
                 imageResId = imageResId,
                 content = content,
@@ -246,13 +244,6 @@ fun FisioNavGraph(
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
-                },
-                onDeleteTip = { numericId: Int ->
-                    ergonomicsRepository.deleteTip(numericId)
-                    navController.popBackStack()
-                },
-                onUpdateTip = { numericId: Int, newTitle: String, newContent: String ->
-                    ergonomicsRepository.updateTip(numericId, newTitle, newContent)
                 }
             )
         }
@@ -277,10 +268,25 @@ fun FisioNavGraph(
             val user = AppState.currentUser ?: sessionManager.getCurrentUser()
             EditAccountScreen(
                 initialFullName = user?.fullName?.ifBlank { "Usuário Cadastrado" } ?: "Usuário Cadastrado",
+                initialBirthDate = user?.birthDate ?: "",
                 initialEmail = user?.email?.ifBlank { "usuario@email.com" } ?: "usuario@email.com",
                 initialProfession = user?.profession?.ifBlank { "Paciente" } ?: "Paciente",
+                isGoogleUser = user?.isGoogleUser == true,
                 onNavigateBack = { navController.popBackStack() },
-                onSaveSuccess = { navController.popBackStack() }
+                onSaveSuccess = { updatedName, updatedBirth, updatedEmail, updatedProfession ->
+                    val currentUser = AppState.currentUser ?: sessionManager.getCurrentUser()
+                    if (currentUser != null) {
+                        val updatedUser = currentUser.copy(
+                            fullName = updatedName,
+                            birthDate = if (currentUser.isGoogleUser) currentUser.birthDate else updatedBirth,
+                            email = if (currentUser.isGoogleUser) currentUser.email else updatedEmail,
+                            profession = updatedProfession
+                        )
+                        AppState.currentUser = updatedUser
+                        sessionManager.updateUserProfile(updatedUser)
+                    }
+                    navController.popBackStack()
+                }
             )
         }
     }
