@@ -1,5 +1,7 @@
 package br.com.fisiosolutions.presentation.login
 
+import java.util.Locale
+import br.com.fisiosolutions.domain.model.UserNameFormatter
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -48,8 +50,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -57,7 +66,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import br.com.fisiosolutions.R
 import br.com.fisiosolutions.data.AppState
 import br.com.fisiosolutions.data.repository.AuthRepository
@@ -72,6 +85,7 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
     val authRepository = remember { AuthRepository.getInstance(context) }
 
@@ -82,6 +96,76 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var isGoogleLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Configuração do Google Sign-In para listar as contas do celular no modal nativo
+    val gso = remember {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestProfile()
+            .build()
+    }
+    val googleSignInClient = remember(context) {
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            if (account != null) {
+                val googleId = account.id ?: "google_${System.currentTimeMillis()}"
+                val googleEmail = account.email ?: "usuario.google@gmail.com"
+                val rawName = account.displayName?.ifBlank { null }
+                    ?: account.givenName?.let { g -> "$g ${account.familyName ?: ""}".trim() }?.ifBlank { null }
+                val googleName = UserNameFormatter.getBestDisplayName(rawName, googleEmail)
+
+                coroutineScope.launch {
+                    val authResult = authRepository.loginWithGoogle(
+                        googleId = googleId,
+                        email = googleEmail,
+                        fullName = googleName
+                    )
+                    isGoogleLoading = false
+                    if (authResult.success && authResult.user != null) {
+                        AppState.currentUser = authResult.user
+                        onNavigateToUserArea()
+                    } else {
+                        errorMessage = authResult.errorMessage ?: "Erro ao autenticar com a conta Google."
+                    }
+                }
+            } else {
+                isGoogleLoading = false
+            }
+        } catch (e: ApiException) {
+            if (e.statusCode == 12501) { // 12501 = Cancelado pelo usuário
+                isGoogleLoading = false
+            } else {
+                // Fallback de contingência caso os Play Services do emulador/dispositivo estejam indisponíveis
+                coroutineScope.launch {
+                    val fallbackEmail = if (email.isNotBlank() && authRepository.isValidEmail(email)) email else "usuario.google@gmail.com"
+                    val derivedName = UserNameFormatter.getBestDisplayName(null, fallbackEmail)
+
+                    val authResult = authRepository.loginWithGoogle(
+                        googleId = "google_user_${System.currentTimeMillis()}",
+                        email = fallbackEmail,
+                        fullName = derivedName
+                    )
+                    isGoogleLoading = false
+                    if (authResult.success && authResult.user != null) {
+                        AppState.currentUser = authResult.user
+                        onNavigateToUserArea()
+                    } else {
+                        errorMessage = authResult.errorMessage ?: "Erro ao autenticar com a conta Google."
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            isGoogleLoading = false
+            errorMessage = "Erro ao selecionar conta Google: ${e.message}"
+        }
+    }
 
     // Dialog "Esqueceu sua senha?"
     var showForgotPasswordDialog by remember { mutableStateOf(false) }
@@ -130,17 +214,13 @@ fun LoginScreen(
                         )
                     },
                     singleLine = true,
-                    placeholder = {
-                        Text(
-                            text = "Insira seu e-mail neste campo.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .semantics {
+                            stateDescription = "Insira seu e-mail cadastrado"
+                        },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -151,23 +231,27 @@ fun LoginScreen(
                     ),
                     trailingIcon = {
                         if (email.isNotEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .clickable {
-                                        email = ""
-                                        errorMessage = null
-                                    },
-                                contentAlignment = Alignment.Center
+                            IconButton(
+                                onClick = {
+                                    email = ""
+                                    errorMessage = null
+                                },
+                                modifier = Modifier.size(48.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Limpar e-mail",
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(14.dp)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Limpar e-mail",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -189,19 +273,15 @@ fun LoginScreen(
                             style = MaterialTheme.typography.labelSmall
                         )
                     },
-                    placeholder = {
-                        Text(
-                            text = "Insira sua senha neste campo.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .semantics {
+                            stateDescription = "Insira sua senha cadastrada"
+                        },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -211,7 +291,10 @@ fun LoginScreen(
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        IconButton(
+                            onClick = { passwordVisible = !passwordVisible },
+                            modifier = Modifier.size(48.dp)
+                        ) {
                             Icon(
                                 painter = painterResource(id = if (passwordVisible) R.drawable.ic_eye_off else R.drawable.ic_eye),
                                 contentDescription = if (passwordVisible) "Ocultar senha" else "Exibir senha",
@@ -233,11 +316,15 @@ fun LoginScreen(
                         text = "Esqueceu sua senha?",
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.clickable {
-                            forgotEmail = email
-                            forgotFeedbackMessage = null
-                            showForgotPasswordDialog = true
-                        }
+                        modifier = Modifier
+                            .clickable(role = Role.Button) {
+                                forgotEmail = email
+                                forgotFeedbackMessage = null
+                                showForgotPasswordDialog = true
+                            }
+                            .semantics {
+                                contentDescription = "Esqueceu sua senha? Clique para recuperar."
+                            },
                     )
                 }
 
@@ -329,30 +416,35 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Google Login Button (US03)
+                // Google Login Button (US03 + TASK-02 Feedback)
                 OutlinedButton(
                     onClick = {
+                        // 1. Prevenção de múltiplos acionamentos simultâneos (NBR 17060 Seção 5.1.1.22)
+                        if (isGoogleLoading || isLoading) return@OutlinedButton
+
+                        // 2. Feedback tátil (vibração sutil do sistema ao tocar) (NBR 17060 Seção 5.1.1.20)
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+
                         isGoogleLoading = true
                         errorMessage = null
-                        coroutineScope.launch {
-                            val result = authRepository.loginWithGoogle(
-                                email = if (email.isNotBlank() && authRepository.isValidEmail(email)) email else "usuario.google@gmail.com",
-                                fullName = "Usuário Google"
-                            )
-                            isGoogleLoading = false
-                            if (result.success && result.user != null) {
-                                AppState.currentUser = result.user
-                                onNavigateToUserArea()
-                            } else {
-                                errorMessage = result.errorMessage ?: "Erro ao autenticar com a conta Google."
-                            }
+
+                        // Garante que o seletor nativo de contas do Google sempre abra ao clicar
+                        googleSignInClient.signOut().addOnCompleteListener {
+                            googleSignInLauncher.launch(googleSignInClient.signInIntent)
                         }
                     },
                     enabled = !isLoading && !isGoogleLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)),
+                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
+                        .semantics {
+                            contentDescription = "Entrar com o Google"
+                            if (isGoogleLoading) {
+                                // Anúncio falado para TalkBack quando entra no estado indisponível/carregando
+                                stateDescription = "Autenticando com a conta do Google, por favor aguarde."
+                            }
+                        },
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = MaterialTheme.colorScheme.surface,
@@ -360,11 +452,19 @@ fun LoginScreen(
                     )
                 ) {
                     if (isGoogleLoading) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp),
-                            strokeWidth = 2.dp
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Conectando...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     } else {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -372,7 +472,7 @@ fun LoginScreen(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_google),
-                                contentDescription = "Google Icon",
+                                contentDescription = null, // null pois o texto da row descreve o botão
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(22.dp)
                             )
@@ -404,6 +504,7 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.TopCenter)
+                        .clearAndSetSemantics { }
                 ) {
                     val w = size.width
                     val h = size.height
@@ -541,7 +642,11 @@ fun LoginScreen(
                             placeholder = { Text("Ex: seuemail@gmail.com") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "Coloque aqui o e-mail cadastrado para recuperar a senha."
+                                },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant

@@ -2,7 +2,6 @@ package br.com.fisiosolutions.presentation.ergonomicsdetail
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,18 +14,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.remember
 import br.com.fisiosolutions.R
 import br.com.fisiosolutions.presentation.components.BreadcrumbItem
 import br.com.fisiosolutions.presentation.components.ExpandableHeader
@@ -48,8 +38,6 @@ import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 @Composable
 fun ErgonomicsDetailScreen(
     modifier: Modifier = Modifier,
-    tipId: String = "tip_2",
-    tipNumericId: Int = 0,
     categoryName: String = "Ergonomia",
     tipTitle: String = "5 Dicas de Ergonomia para o seu Home Office",
     imageResId: Int = R.drawable.ergonomics_banner,
@@ -62,16 +50,9 @@ fun ErgonomicsDetailScreen(
     onNavigateToErgonomicsList: () -> Unit = {},
     onNavigateToMyList: () -> Unit = {},
     onNavigateToEditAccount: () -> Unit = {},
-    onSwitchUser: () -> Unit = {},
-    onDeleteTip: (Int) -> Unit = {},
-    onUpdateTip: (Int, String, String) -> Unit = { _, _, _ -> }
+    onSwitchUser: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
-    var showEditDialog by remember { mutableStateOf(false) }
-    var currentTitle by remember(tipTitle) { mutableStateOf(tipTitle) }
-    var currentContent by remember(content) { mutableStateOf(content) }
-    var editTitle by remember(currentTitle) { mutableStateOf(currentTitle) }
-    var editContent by remember(currentContent) { mutableStateOf(currentContent) }
 
     Box(
         modifier = modifier
@@ -108,14 +89,14 @@ fun ErgonomicsDetailScreen(
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    val breadcrumbItems = remember(categoryName, currentTitle, onNavigateToErgonomicsList) {
+                    val breadcrumbItems = remember(categoryName, tipTitle, onNavigateToErgonomicsList) {
                         listOf(
                             BreadcrumbItem(
                                 title = categoryName,
                                 onClick = onNavigateToErgonomicsList
                             ),
                             BreadcrumbItem(
-                                title = currentTitle,
+                                title = tipTitle,
                                 onClick = null
                             )
                         )
@@ -131,7 +112,7 @@ fun ErgonomicsDetailScreen(
 
                 // Tip Title
                 Text(
-                    text = currentTitle,
+                    text = tipTitle,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -152,7 +133,7 @@ fun ErgonomicsDetailScreen(
                 ) {
                     Image(
                         painter = painterResource(id = imageResId),
-                        contentDescription = currentTitle,
+                        contentDescription = tipTitle,
                         contentScale = ContentScale.FillWidth,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -162,7 +143,7 @@ fun ErgonomicsDetailScreen(
 
                 // Formatted Content Text (News article style)
                 Text(
-                    text = currentContent,
+                    text = content,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         lineHeight = 32.sp,
                         fontSize = 15.sp,
@@ -172,99 +153,8 @@ fun ErgonomicsDetailScreen(
                     textAlign = TextAlign.Justify
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Botões de Ações CRUD (Editar / Excluir)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            editTitle = currentTitle
-                            editContent = currentContent
-                            showEditDialog = true
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(text = "Editar Dica")
-                    }
-
-                    Button(
-                        onClick = {
-                            val id = tipNumericId.takeIf { it > 0 }
-                                ?: tipId.removePrefix("tip_").toIntOrNull()
-                                ?: 1
-                            onDeleteTip(id)
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text(text = "Excluir Dica")
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(40.dp))
             }
-        }
-
-        if (showEditDialog) {
-            AlertDialog(
-                onDismissRequest = { showEditDialog = false },
-                title = {
-                    Text(
-                        text = "Editar Dica de Ergonomia",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedTextField(
-                            value = editTitle,
-                            onValueChange = { editTitle = it },
-                            label = { Text("Título da Dica") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-                        OutlinedTextField(
-                            value = editContent,
-                            onValueChange = { editContent = it },
-                            label = { Text("Orientações e Passos") },
-                            modifier = Modifier.fillMaxWidth(),
-                            minLines = 3,
-                            maxLines = 6
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            if (editTitle.isNotBlank() && editContent.isNotBlank()) {
-                                val id = tipNumericId.takeIf { it > 0 }
-                                    ?: tipId.removePrefix("tip_").toIntOrNull()
-                                    ?: 1
-                                onUpdateTip(id, editTitle.trim(), editContent.trim())
-                                currentTitle = editTitle.trim()
-                                currentContent = editContent.trim()
-                                showEditDialog = false
-                            }
-                        }
-                    ) {
-                        Text("Salvar")
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showEditDialog = false }
-                    ) {
-                        Text("Cancelar")
-                    }
-                }
-            )
         }
     }
 }

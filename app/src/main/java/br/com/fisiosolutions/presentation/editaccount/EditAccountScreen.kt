@@ -48,6 +48,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,12 +66,15 @@ import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
 fun EditAccountScreen(
     modifier: Modifier = Modifier,
     initialFullName: String = "John Doe Da Silva",
+    initialBirthDate: String = "01/01/1990",
     initialEmail: String = "JohnDoe@gmail.com",
     initialProfession: String = "Analista de Desenvolvimento...",
+    isGoogleUser: Boolean = false,
     onNavigateBack: () -> Unit = {},
-    onSaveSuccess: () -> Unit = {}
+    onSaveSuccess: (fullName: String, birthDate: String, email: String, profession: String) -> Unit = { _, _, _, _ -> }
 ) {
     var fullName by remember { mutableStateOf(initialFullName) }
+    var birthDate by remember { mutableStateOf(initialBirthDate) }
     var email by remember { mutableStateOf(initialEmail) }
     var profession by remember { mutableStateOf(initialProfession) }
     var password by remember { mutableStateOf("************") }
@@ -162,6 +168,7 @@ fun EditAccountScreen(
                 onValueChange = { fullName = it },
                 label = "Nome Completo",
                 placeholder = "Digite seu nome completo",
+                semanticLabel = "Preencha seu nome completo neste campo.",
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Words,
                     keyboardType = KeyboardType.Text
@@ -169,17 +176,33 @@ fun EditAccountScreen(
                 onClear = { fullName = "" }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (!isGoogleUser) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // E-mail Input
-            EditTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = "E-mail",
-                placeholder = "Digite seu e-mail",
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                onClear = { email = "" }
-            )
+                // Data de Nascimento Input
+                EditTextField(
+                    value = birthDate,
+                    onValueChange = { birthDate = it },
+                    label = "Data de Nascimento",
+                    placeholder = "DD/MM/AAAA",
+                    semanticLabel = "Preencha sua data de nascimento neste campo.",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    onClear = { birthDate = "" }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // E-mail Input
+                EditTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = "E-mail",
+                    placeholder = "Digite seu e-mail",
+                    semanticLabel = "Preencha o e-mail que deseja cadastrar neste campo.",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    onClear = { email = "" }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -189,6 +212,7 @@ fun EditAccountScreen(
                 onValueChange = { profession = it },
                 label = "Profissão",
                 placeholder = "Digite sua profissão",
+                semanticLabel = "Preencha sua profissão neste campo.",
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
                     keyboardType = KeyboardType.Text
@@ -196,103 +220,113 @@ fun EditAccountScreen(
                 onClear = { profession = "" }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (!isGoogleUser) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Senha Input
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                label = {
-                    Text(
-                        text = "Senha",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                },
-                placeholder = {
-                    Text(
-                        text = "Digite sua senha",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                ),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            painter = painterResource(id = if (passwordVisible) R.drawable.ic_eye_off else R.drawable.ic_eye),
-                            contentDescription = if (passwordVisible) "Ocultar senha" else "Exibir senha",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                // Senha Input
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = {
+                        Text(
+                            text = "Senha",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall
                         )
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Confirmar Senha Input
-            TextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = {
-                    Text(
-                        text = "Confirmar Senha",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                },
-                placeholder = {
-                    Text(
-                        text = "Confirme sua senha",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
-                singleLine = true,
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                ),
-                trailingIcon = {
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(
-                            painter = painterResource(id = if (confirmPasswordVisible) R.drawable.ic_eye_off else R.drawable.ic_eye),
-                            contentDescription = if (confirmPasswordVisible) "Ocultar senha" else "Exibir senha",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                    },
+                    placeholder = {
+                        Text(
+                            text = "Digite sua senha",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall
                         )
+                    },
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .semantics {
+                            stateDescription = "Insira a senha desejada"
+                        },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                painter = painterResource(id = if (passwordVisible) R.drawable.ic_eye_off else R.drawable.ic_eye),
+                                contentDescription = if (passwordVisible) "Ocultar senha" else "Exibir senha",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
-                }
-            )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Confirmar Senha Input
+                TextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = {
+                        Text(
+                            text = "Confirmar Senha",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            text = "Confirme sua senha",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    },
+                    singleLine = true,
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .semantics {
+                            contentDescription = "Repita nesse campo a mesma senha que cadastrou no campo de senha."
+                        },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    trailingIcon = {
+                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Icon(
+                                painter = painterResource(id = if (confirmPasswordVisible) R.drawable.ic_eye_off else R.drawable.ic_eye),
+                                contentDescription = if (confirmPasswordVisible) "Ocultar senha" else "Exibir senha",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(28.dp))
 
             // Primary Button "Salvar Modificações"
             Button(
-                onClick = onSaveSuccess,
+                onClick = {
+                    onSaveSuccess(fullName, birthDate, email, profession)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
@@ -341,6 +375,7 @@ private fun EditTextField(
     onValueChange: (String) -> Unit,
     label: String,
     placeholder: String,
+    semanticLabel: String,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     onClear: () -> Unit
@@ -366,7 +401,10 @@ private fun EditTextField(
         keyboardOptions = keyboardOptions,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+            .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+            .semantics {
+                stateDescription = semanticLabel
+            },
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -402,6 +440,18 @@ private fun EditTextField(
 fun EditAccountScreenLightPreview() {
     FisioSolutionsTheme(darkTheme = false) {
         EditAccountScreen()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EditAccountScreenGooglePreview() {
+    FisioSolutionsTheme(darkTheme = false) {
+        EditAccountScreen(
+            initialFullName = "Felipe Silva",
+            initialEmail = "felipe.silva@gmail.com",
+            isGoogleUser = true
+        )
     }
 }
 
