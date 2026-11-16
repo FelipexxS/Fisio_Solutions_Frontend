@@ -267,7 +267,8 @@ object AppState {
         if (idx >= 0) {
             allErgonomicsTips[idx] = tip
         } else {
-            allErgonomicsTips.add(tip)
+            // Insere no topo da lista para destacar a dica mais recente (ex: dica diária gerada por IA)
+            allErgonomicsTips.add(0, tip)
         }
     }
 

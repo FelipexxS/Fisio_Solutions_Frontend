@@ -73,6 +73,17 @@ fun ErgonomicsListScreen(
     var showAddDialog by remember { androidx.compose.runtime.mutableStateOf(false) }
     var newTipTitle by remember { androidx.compose.runtime.mutableStateOf("") }
     var newTipContent by remember { androidx.compose.runtime.mutableStateOf("") }
+    var isGeneratingAiTip by remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val ergonomicsRepository = remember {
+        br.com.fisiosolutions.data.repository.ErgonomicsRepository.getInstance(context)
+    }
+
+    // Verifica automaticamente ao abrir a tela se já se passaram 24h para gerar a dica diária da profissão
+    androidx.compose.runtime.LaunchedEffect(userProfession) {
+        ergonomicsRepository.checkAndGenerateDailyTipIfNeeded(force = false)
+    }
 
     val ergonomicsTips = AppState.allErgonomicsTips
 
@@ -263,6 +274,31 @@ fun ErgonomicsListScreen(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = {
+                            if (!isGeneratingAiTip) {
+                                isGeneratingAiTip = true
+                                ergonomicsRepository.checkAndGenerateDailyTipIfNeeded(force = true) {
+                                    isGeneratingAiTip = false
+                                    showAddDialog = false
+                                }
+                            }
+                        },
+                        enabled = !isGeneratingAiTip,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        if (isGeneratingAiTip) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.width(18.dp).height(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Gerando dica para $userProfession...")
+                        } else {
+                            Text("Gerar por IA ($userProfession)")
+                        }
+                    }
                     OutlinedTextField(
                         value = newTipTitle,
                         onValueChange = { newTipTitle = it },

@@ -50,6 +50,13 @@ fun FisioNavGraph(
         ergonomicsRepository.syncTips()
     }
 
+    // Sempre que o usuário logado ou sua profissão mudar, verifica se há dica diária (24h) pendente para gerar
+    androidx.compose.runtime.LaunchedEffect(AppState.currentUser?.id, AppState.currentUser?.profession) {
+        if (AppState.currentUser != null) {
+            ergonomicsRepository.checkAndGenerateDailyTipIfNeeded(force = false)
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,

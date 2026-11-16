@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.fisiosolutions.presentation.theme.FisioSolutionsTheme
@@ -65,8 +66,14 @@ fun FisioSelectInput(
             ) {
                 Text(
                     text = selectedOption,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    style = if (selectedOption.length > 15) {
+                        MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                    } else {
+                        MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                    },
                     color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
 
